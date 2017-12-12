@@ -2,8 +2,6 @@ from django.conf.urls import url
 from django.contrib import admin
 from django.http import HttpResponseRedirect
 
-from solo.models import DEFAULT_SINGLETON_INSTANCE_ID
-
 try:
     from django.utils.encoding import force_unicode
 except ImportError:
@@ -70,4 +68,4 @@ class SingletonModelAdmin(admin.ModelAdmin):
 
     @property
     def singleton_instance_id(self):
-        return getattr(self.model, 'singleton_instance_id', DEFAULT_SINGLETON_INSTANCE_ID)
+        return 1
