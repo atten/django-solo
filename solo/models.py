@@ -17,41 +17,24 @@ cache = get_cache(cache_name)
 __all__ = ('SingletonModel',)
 
 
-class SingletonModelMixin(object):
+class SingletonModel(Model):
     """
     Use class constructor for saving and retrieving singletone:
 
     class SingleModel(SingletonModel):
         pass
 
-    solo = SingleModel()
+    solo = SingleModel.get_solo()
 
     That's it.
     """
-
-    def __new__(cls, *args, **kwargs):
-        if args or kwargs:
-            return super(SingletonModelMixin, cls).__new__(cls, *args, **kwargs)
-
-        cls.check_expired()
-
-        if not hasattr(cls, '_instance'):
-            cls._instance, created = cls.objects.get_or_create(id=1)
-            cls._instance._timestamp = now()
-
-        return cls._instance
-
-    def __init__(self, *args, **kwargs):
-        """Do not initialize singleton twice (called without args)"""
-        if args or kwargs:
-            super(SingletonModelMixin, self).__init__(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
         pass
 
     def save(self, *args, **kwargs):
         self.id = 1
-        super(SingletonModelMixin, self).save(*args, **kwargs)
+        super(SingletonModel, self).save(*args, **kwargs)
         self._update_solo(self)
 
     @classmethod
@@ -78,15 +61,13 @@ class SingletonModelMixin(object):
 
     @classmethod
     def get_solo(cls):
-        import warnings
-        warnings.warn(
-            "SingletonModel.get_solo() is deprecated, use SingletonModel() instead",
-            DeprecationWarning
-        )
-        return cls()
+        cls.check_expired()
 
+        if not hasattr(cls, '_instance'):
+            cls._instance, created = cls.objects.get_or_create(id=1)
+            cls._instance._timestamp = now()
 
-class SingletonModel(SingletonModelMixin, Model):
+        return cls._instance
 
     class Meta:
         abstract = True
